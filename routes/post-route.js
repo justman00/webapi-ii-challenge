@@ -5,8 +5,7 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
   const { title, contents } = req.body;
-  console.log(title.length > 0);
-  console.log(contents.length > 0);
+
   if (!title.length > 0 || !contents.length > 0) {
     res.status(400).json({
       errorMessage: "Please provide title and contents for the post."
@@ -48,6 +47,49 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({
       error: "The post information could not be retrieved."
     });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  const post = await db.findById(req.params.id);
+  if (!post) {
+    res
+      .status(404)
+      .json({ message: "The post with the specified ID does not exist." });
+  } else {
+    try {
+      const records = await db.remove(req.params.id);
+      res.status(200).json(records);
+    } catch (e) {
+      res.status(500).json({
+        error: "The post information could not be retrieved."
+      });
+    }
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  const post = await db.findById(req.params.id);
+  if (!post) {
+    res
+      .status(404)
+      .json({ message: "The post with the specified ID does not exist." });
+  } else {
+    const { title, contents } = req.body;
+    if (!title.length > 0 || !contents.length > 0) {
+      res.status(400).json({
+        errorMessage: "Please provide title and contents for the post."
+      });
+    } else {
+      try {
+        const newPost = await db.update(req.params.id, req.body);
+        res.status(200).json(newPost);
+      } catch (e) {
+        res.status(500).json({
+          error: "The post information could not be retrieved."
+        });
+      }
+    }
   }
 });
 
