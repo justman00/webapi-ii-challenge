@@ -3,6 +3,26 @@ const db = require("../data/db");
 
 const router = express.Router();
 
+router.post("/", async (req, res) => {
+  const { title, contents } = req.body;
+  console.log(title.length > 0);
+  console.log(contents.length > 0);
+  if (!title.length > 0 || !contents.length > 0) {
+    res.status(400).json({
+      errorMessage: "Please provide title and contents for the post."
+    });
+  } else {
+    try {
+      const newPost = await db.insert(req.body);
+      res.status(201).json(newPost);
+    } catch (e) {
+      res.status(500).json({
+        error: "There was an error while saving the post to the database"
+      });
+    }
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     const data = await db.find();
@@ -11,6 +31,23 @@ router.get("/", async (req, res) => {
     res
       .status(500)
       .json({ error: "The posts information could not be retrieved." });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const post = await db.findById(req.params.id);
+    if (!post) {
+      res
+        .status(404)
+        .json({ message: "The post with the specified ID does not exist." });
+    } else {
+      res.status(200).json(post);
+    }
+  } catch (e) {
+    res.status(500).json({
+      error: "The post information could not be retrieved."
+    });
   }
 });
 
